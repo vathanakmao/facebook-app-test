@@ -1,0 +1,63 @@
+
+Spring Social Test
+==================
+This is just a simple Facebook application for showing the currently
+logged-in user's details in the Facebook Canvas page.
+
+
+How to start
+-------------
+    - Type https://apps.facebook.com/mytestapp-mvthnk/ and
+    you will see the currently logged-in user's details such as username, email, etc.
+
+
+Workflow
+---------
+When the user accesses https://apps.facebook.com/mytestapp-mvthnk/,
+Facebook makes an asynchronous HTTP POST request to http://facebook-app-test-mvthnk.appspot.com/
+which is configured in Facebook application settings.
+
+If this is the first time the user accesses your app,
+your app redirects him/her to Facebook Login Dialog (not the Facebook login page,
+but app login page or grant-permission page)
+
+If the user accepts the Login Dialog (clicks on the Allow button), t
+he user is redirected back to your app redirected with the signed_request parameter included.
+The signed_request parameter is a decoded string contained user_id, access_token, etc.
+The access token is just a short-lived one which is valid for one or two hours
+so your app uses the token to make another HTTP request to get a long-lived one.
+It may be valid for 24 hours.
+The token is then persisted in session to be used for making API calls to Facebook
+to perform operations such as publish to stream, email, get user's info, etc.
+
+
+Your app on Facebook
+---------------------
+The app is created by the user vathanakmao.atwork@gmail.com
+After logging into Facebook, you can see the app settings from
+this URL https://developers.facebook.com/apps/304455099666589/summary
+
+
+Your app on GAE
+----------------
+- appId: facebook-app-test-mvthnk.appspot.com
+- email: vathanakmao.atwork@gmail.com
+- APIs:
+    . "/" - display currently logged-in user's information
+    . "/admin/session/clear" - invalidate session
+
+
+Maven
+-----
+mvn clean gae:deploy
+mvn release:prepare
+
+
+Code
+----
+See HomeController and FBAuthorizationInterceptor classes
+
+
+References
+-----------
+https://developers.facebook.com/docs/howtos/login/server-side-login/

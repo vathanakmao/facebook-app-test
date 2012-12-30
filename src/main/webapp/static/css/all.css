@@ -1,0 +1,19 @@
+div.row {
+	margin-top: 3px;
+	margin-bottom: 3px;
+}
+
+div.row label {
+	float: left; 
+	width: 150px; 
+	text-align: right; 
+	margin-right: 5px;
+}
+
+div.row input.submit-button {
+	margin-left: 150px;
+}
+
+div.row h3.title {
+	margin-left: 150px;
+}
