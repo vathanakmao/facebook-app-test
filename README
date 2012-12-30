@@ -60,4 +60,5 @@ See HomeController and FBAuthorizationInterceptor classes
 
 References
 -----------
-https://developers.facebook.com/docs/howtos/login/server-side-login/
+https://developers.facebook.com/docs/technical-guides/login/
+https://developers.facebook.com/docs/howtos/login/signed-request/
