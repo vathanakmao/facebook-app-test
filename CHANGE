@@ -1,7 +1,7 @@
 + Description: Track all changes of this project.
 + Created by Vathanak Mao on 20th November 2012
 
-Version 1
+Version 2
 --------------------------------------------------------------------------------------------------------------------------
 Facebook login using server-side login method (using RestTemplate, not Spring Social API)
 
