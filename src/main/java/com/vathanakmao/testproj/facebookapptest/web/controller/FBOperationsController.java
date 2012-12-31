@@ -28,8 +28,8 @@ public class FBOperationsController {
      */
     @RequestMapping(value="me", method = {RequestMethod.GET, RequestMethod.POST} )
     @ResponseBody
-    public FBUser getMe(HttpServletRequest request) {
-        return facebookOperations.getMyAccount(FacebookAuthService.getFacebookSignedRequestFromSession(request).getOauth_token());
+    public FBUser getCurrentlyLoggedInUserInfo(String accessToken) {
+        return facebookOperations.getCurrentlyLoggedInUserInfo(accessToken);
     }
 
 }

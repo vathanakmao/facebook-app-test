@@ -28,7 +28,7 @@ public class FacebookOperations {
     /**
      * Get currently logged-in user's account information.
      */
-    public FBUser getMyAccount(String accessToken) {
+    public FBUser getCurrentlyLoggedInUserInfo(String accessToken) {
         try {
             FBUser user = restTemplate.getForObject("https://graph.facebook.com/me?access_token=" + accessToken, FBUser.class);
             return user;

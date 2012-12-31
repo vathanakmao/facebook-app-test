@@ -1,5 +1,6 @@
 package com.vathanakmao.testproj.facebookapptest.web.controller;
 
+import com.vathanakmao.testproj.facebookapptest.model.FBAccessToken;
 import com.vathanakmao.testproj.facebookapptest.model.FBUser;
 import com.vathanakmao.testproj.facebookapptest.service.FacebookAuthService;
 import com.vathanakmao.testproj.facebookapptest.service.FacebookOperations;
@@ -26,7 +27,8 @@ public class HomeController {
      */
     @RequestMapping(method = {RequestMethod.GET, RequestMethod.POST})
     public String getHomePage(HttpServletRequest request, Model model) {
-        FBUser user = facebookOperations.getMyAccount(FacebookAuthService.getFacebookSignedRequestFromSession(request).getOauth_token());
+        FBAccessToken fbAccessToken = (FBAccessToken) request.getSession().getAttribute("accessToken");
+        FBUser user = facebookOperations.getCurrentlyLoggedInUserInfo(fbAccessToken.getAccess_token());
         model.addAttribute("user", user);
 
         return "index";

@@ -1,14 +1,17 @@
 package com.vathanakmao.testproj.facebookapptest.web.interceptor;
 
+import com.vathanakmao.testproj.facebookapptest.model.FBAccessToken;
 import com.vathanakmao.testproj.facebookapptest.service.FacebookAuthService;
-import com.vathanakmao.testproj.facebookapptest.model.FBSignedRequest;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.UUID;
 
 public class FBAuthorizationInterceptor extends HandlerInterceptorAdapter {
     private static final Logger log = LoggerFactory.getLogger(FBAuthorizationInterceptor.class);
@@ -19,8 +22,9 @@ public class FBAuthorizationInterceptor extends HandlerInterceptorAdapter {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        log.debug(">> Referer={}", request.getHeader("Referer"));
 
-        // No need to authorize for the excluding path
+        // No need to authorize for the excluding paths
         if (excludingPaths != null) {
             for (String path : excludingPaths) {
                 if (request.getRequestURI().contains(path)) {
@@ -30,34 +34,41 @@ public class FBAuthorizationInterceptor extends HandlerInterceptorAdapter {
             }
         }
 
-        log.debug(">> Referer={}", request.getHeader("Referer"));
+        if (StringUtils.isEmpty((String) request.getSession().getAttribute("accessToken"))) { // if the user first time accesses this app or the session has expired
 
-        if ("access_denied".equals(request.getParameter("error"))) { // if the user has chosen not to accept the Login dialog
-            log.info(">> User has chosen not to accept the Login Dialog.");
-            return false;
-        }
-
-        FBSignedRequest signedRequest = FacebookAuthService.getFacebookSignedRequestFromSession(request);
-        log.debug(">> signedRequest (in session): {}", signedRequest);
-
-        if (signedRequest == null) { // it means the user's never accessed this app
-            signedRequest = FacebookAuthService.getFacebookSignedRequest(request.getParameter("signed_request"));
-
-            if (signedRequest == null) { // if it's not a redirect back from the Login dialog, then ask for login
-                log.info(">> Redirecting to {}", FacebookAuthService.getAuthURL());
-
-                response.sendRedirect(FacebookAuthService.getAuthURL());
+            if ("access_denied".equals(request.getParameter("error")) && "user_denied".equals(request.getParameter("error_reason"))) {
+                log.info(">> The user has rejected to authorize the app.");
                 return false;
 
-            } else { // if this is the redirect back from the Login Dialog and the user has granted the permissions to the app
-                log.info(">> User has granted the permissions to the app (user_id={}, oauth_token={})", new Object[]{signedRequest.getUser_id(), signedRequest.getOauth_token()});
+            } else {
+                String code = request.getParameter("code");
 
-                facebookAuthService.generateLongLivedAccessToken(signedRequest);
+                if (StringUtils.isEmpty(code)) { // if the user hasn't authorized the app yet
+                    String state = UUID.randomUUID().toString();
+                    request.getSession().setAttribute("state", state);
+                    response.sendRedirect(FacebookAuthService.getAuthorizationURL(state));
+                    return false;
 
-                request.getSession().setAttribute("signedRequest", signedRequest);
+                } else { // if the user has just authorized the app (redirecting from the Login Dialog)
+                    final String stateInSession = (String) request.getSession().getAttribute("state");
+                    final String stateInRequest = request.getParameter("state");
+
+                    if (StringUtils.equals(stateInRequest, stateInSession)) {
+                        try {
+                            FBAccessToken shortLivedAccessToken = facebookAuthService.exchangeCodeForAccessToken(code); // short-lived token may be valid for one or two hours
+                            FBAccessToken longLivedAccessToken = facebookAuthService.getLongLivedAccessToken(shortLivedAccessToken.getAccess_token());
+                            request.getSession().setAttribute("accessToken", longLivedAccessToken);
+                        } catch (RestClientException ex) {
+                            log.error(">> Failed to exchange code {} for access token.", code);
+                            return false;
+                        }
+
+                    } else {
+                        log.error(">> The state in request object does not match the one in session. You may be a victim of CSRF.");
+                        return false;
+                    }
+                }
             }
-        } else {
-            log.debug(">> userId={}, accessToken={}, expires={}", new Object[]{signedRequest.getUser_id(), signedRequest.getOauth_token(), signedRequest.getExpires()});
         }
 
         return true;

@@ -1,16 +1,13 @@
 package com.vathanakmao.testproj.facebookapptest.service;
 
 
-import com.vathanakmao.testproj.facebookapptest.model.FBSignedRequest;
-import org.apache.commons.codec.binary.Base64;
+import com.vathanakmao.testproj.facebookapptest.model.FBAccessToken;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import javax.servlet.http.HttpServletRequest;
 import java.net.URLEncoder;
 
 public class FacebookAuthService {
@@ -35,11 +32,7 @@ public class FacebookAuthService {
         return appSecret;
     }
 
-    public static String getLoginRedirectURL() {
-        return "https://graph.facebook.com/oauth/authorize?client_id=" + appId + "&display=page&redirect_uri=" + redirect_uri + "&scope=" + StringUtils.join(perms, ",");
-    }
-
-    public static String getAuthURL(String authCode) {
+    public static String getAccessTokenRequestURL(String authCode) {
         return "https://graph.facebook.com/oauth/access_token?client_id=" + appId + "&redirect_uri=" + redirect_uri + "&client_secret=" + appSecret + "&code=" + authCode;
     }
 
@@ -48,58 +41,58 @@ public class FacebookAuthService {
      *
      * @return authorization URL
      */
-    public static String getAuthURL() {
-        return "https://www.facebook.com/dialog/oauth?client_id=" + appId + "&redirect_uri=" + URLEncoder.encode(redirect_uri) + "&scope=" + StringUtils.join(perms, ",");
+    public static String getAuthorizationURL(String state) {
+        return "https://www.facebook.com/dialog/oauth?client_id=" + appId + "&redirect_uri=" + URLEncoder.encode(redirect_uri) + "&scope=" + StringUtils.join(perms, ",") + "&state=" + state;
+    }
+
+    /**
+     * Exchange code for access token
+     *
+     * @param code - the request param obtained when user has authorized the app
+     * @return access token
+     * @throws RestClientException when error connecting to Facebook server, etc.
+     */
+    public FBAccessToken exchangeCodeForAccessToken(String code) throws RestClientException {
+        String longLivedAccessTokenAndExpires = restTemplate.getForObject(getAccessTokenRequestURL(code), String.class);
+
+        try {
+            FBAccessToken result = new FBAccessToken();
+            String params[] = longLivedAccessTokenAndExpires.split("&");
+            result.setAccess_token(params[0].split("=")[1]);
+            result.setExpires(Long.parseLong(params[1].split("=")[1]));
+            return result;
+        } catch (Exception ex) {
+            log.error(">> Failed to parse access token and expires (longLivedAccessTokenAndExpires={})", longLivedAccessTokenAndExpires);
+        }
+
+        return null;
     }
 
     /**
      * Get a long-lived access token via the short-lived access token and its expired time and set it to the given signed request object.
      *
-     * @param signedRequest
+     * @param shortLivedAccessToken
      */
-    public void generateLongLivedAccessToken(FBSignedRequest signedRequest) {
-        String shortLivedAccessToken = signedRequest.getOauth_token();
+    public FBAccessToken getLongLivedAccessToken(String shortLivedAccessToken) {
 
         try {
+            FBAccessToken result = new FBAccessToken();
             String longLivedAccessTokenAndExpires = restTemplate.getForObject("https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=" + appId + "&client_secret=" + appSecret + "&fb_exchange_token=" + shortLivedAccessToken, String.class);
             log.debug(">> longLivedAccessTokenAndExpires={}", longLivedAccessTokenAndExpires);
 
             if (StringUtils.isNotEmpty(longLivedAccessTokenAndExpires)) {
                 String params[] = longLivedAccessTokenAndExpires.split("&");
 
-                signedRequest.setOauth_token(params[0].split("=")[1]);
-                signedRequest.setExpires(Long.parseLong(params[1].split("=")[1]));
+                result.setAccess_token(params[0].split("=")[1]);
+                result.setExpires(Long.parseLong(params[1].split("=")[1]));
             }
         } catch (RestClientException ex) {
-            log.error(">> Failed to get a long-lived access token (userId={}, shortLivedAccessToken={})", new Object[]{signedRequest.getUser_id(), shortLivedAccessToken});
+            log.error(">> Failed to get a long-lived access token (shortLivedAccessToken={})", shortLivedAccessToken);
 
         } catch (Exception ex) {
             log.error(ex.getMessage());
         }
-    }
 
-    public static FBSignedRequest getFacebookSignedRequest(String signedRequest) throws Exception {
-        if (StringUtils.isEmpty(signedRequest)) {
-            return null;
-        }
-
-        String payLoad = signedRequest.split("\\.", 2)[1];
-        log.debug(">> payload: {}", payLoad);
-
-        payLoad = payLoad.replace("-", "+").replace("_", "/").trim();
-
-        log.debug("<< payload: {}", payLoad);
-
-        Base64 base64 = new Base64(true);
-        String jsonString = new String(base64.decode(payLoad.getBytes("UTF8")));
-
-        log.debug(">> jsonString: {}", jsonString);
-
-        FBSignedRequest result = new ObjectMapper().readValue(jsonString, FBSignedRequest.class);
-        return result;
-    }
-
-    public static FBSignedRequest getFacebookSignedRequestFromSession(HttpServletRequest request) {
-        return (FBSignedRequest) request.getSession().getAttribute("signedRequest");
+        return null;
     }
 }
