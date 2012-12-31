@@ -4,7 +4,7 @@
 
 	<groupId>com.vathanakmao.testproj</groupId>
 	<artifactId>facebook-app-test</artifactId>
-	<version>2-SNAPSHOT</version>
+	<version>2</version>
 	<packaging>war</packaging>
 
 	<properties>
@@ -259,7 +259,7 @@
 
     <scm>
         <developerConnection>scm:git:git@github.com:vathanakmao/facebook-app-test.git</developerConnection>
-        <tag>scm:git:git@github.com:vathanakmao/facebook-app-test.git</tag>
+        <tag>v2</tag>
     </scm>
 
 </project>
