@@ -24,9 +24,6 @@ but app login page or grant-permission page)
 If the user accepts the Login Dialog (clicks on the Allow button),
 he/she is redirected back to the redirect URI with the 'code' param included.
 Your app uses that code param to exchange for access token.
-The access token is just a short-lived one which is valid for one or two hours
-so your app uses the token to make another HTTP request to get a long-lived one.
-It may be valid for 24 hours.
 The token is then persisted in session to be used for making API calls to Facebook
 to perform operations such as publish to stream, email, get user's info, etc.
 
