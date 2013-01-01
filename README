@@ -51,7 +51,7 @@ Your app on GAE
 Maven
 -----
 mvn clean gae:deploy
-mvn release:prepare -Dresume
+mvn release:prepare -Dresume=false
 
 
 Code
