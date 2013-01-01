@@ -3,12 +3,16 @@ Spring Social Test
 ==================
 This is just a simple Facebook application for showing the currently
 logged-in user's details in the Facebook Canvas page.
+It focuses on how to your app logs into Facebook.
+We are using Spring Social API so we don't need to explicitly
+make HTTP request to call Facebook APIs and convert the returned
+JSON string to an object ourselves.
 
 
 How to start
 -------------
-    - Type https://apps.facebook.com/mytestapp-mvthnk/ and
-    you will see the currently logged-in user's details such as username, email, etc.
+Type https://apps.facebook.com/mytestapp-mvthnk/ and
+you will see the currently logged-in user's details such as username, email, etc.
 
 
 Workflow
@@ -47,7 +51,7 @@ Your app on GAE
 Maven
 -----
 mvn clean gae:deploy
-mvn release:prepare
+mvn release:prepare -Dresume
 
 
 Code
@@ -57,5 +61,6 @@ See HomeController and FBAuthorizationInterceptor classes
 
 References
 -----------
+http://static.springsource.org/spring-social/docs/1.0.x/reference/html/serviceprovider.html
 https://developers.facebook.com/docs/technical-guides/login/
 https://developers.facebook.com/docs/concepts/login/login-architecture/
