@@ -1,12 +1,20 @@
+
 + Description: Track all changes of this project.
 + Created by Vathanak Mao on 20th November 2012
 
+
+Version 3
+--------------------------------------------------------------------------------------------------------------------------
+Application Login using Spring Social API
+
+
 Version 2
 --------------------------------------------------------------------------------------------------------------------------
-Facebook login using server-side login method (using RestTemplate, not Spring Social API)
+Application login using server-side login method (using RestTemplate, not Spring Social API)
+
 
 Version 1
 --------------------------------------------------------------------------------------------------------------------------
-Facebook Login using the signed_request parameter (using General login method, not apps or server-side logins) [not using spring social]
+Application Login using the signed_request parameter (using General login method, not apps or server-side logins) [not using spring social]
 Add required libs for GAE webapp (no persistence)
 Add required libs for Spring MVC

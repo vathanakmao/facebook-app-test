@@ -7,6 +7,12 @@
         http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
         http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
+    <bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location">
+            <value>classpath:application.properties</value>
+        </property>
+    </bean>
+
 	<mvc:annotation-driven />
 	<context:component-scan base-package="com.vathanakmao.testproj.facebookapptest" />
 
@@ -33,5 +39,10 @@
             </property>
         </bean>
 	</mvc:interceptors>
+
+    <bean id="facebookConnectionFactory" class="org.springframework.social.facebook.connect.FacebookConnectionFactory">
+        <constructor-arg value="${facebook.clientId}" />
+        <constructor-arg value="${facebook.clientSecret}" />
+    </bean>
 
 </beans>
